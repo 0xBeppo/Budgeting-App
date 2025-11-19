@@ -1,16 +1,65 @@
-# React + Vite
+# Budgeting App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern budgeting application built with React and Vite, designed to help you track your finances, assets, and liabilities.
 
-Currently, two official plugins are available:
+## Prerequisites
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Before you begin, ensure you have the following installed on your machine:
+- [Node.js](https://nodejs.org/) (v18 or higher recommended)
+- [npm](https://www.npmjs.com/) (usually comes with Node.js)
 
-## React Compiler
+## Installation
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+1. Clone the repository to your local machine.
+2. Navigate to the project directory.
+3. Install the dependencies:
 
-## Expanding the ESLint configuration
+```bash
+npm install
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Running the Application
+
+This application consists of a React frontend and a JSON Server backend. You need to run both for the app to function correctly.
+
+### 1. Start the Backend Server
+
+The backend runs on port 3001 and serves the data from `db.json`.
+
+```bash
+npm run server
+```
+
+### 2. Start the Frontend Development Server
+
+Open a new terminal window and start the Vite development server.
+
+```bash
+npm run dev
+```
+
+The application should now be running at `http://localhost:5173` (or another port if 5173 is busy).
+
+## Building for Production
+
+To create a production build of the application:
+
+```bash
+npm run build
+```
+
+You can preview the production build locally using:
+
+```bash
+npm run preview
+```
+
+## Technologies Used
+
+- **Frontend Framework:** [React](https://react.dev/)
+- **Build Tool:** [Vite](https://vitejs.dev/)
+- **Styling:** [Tailwind CSS](https://tailwindcss.com/)
+- **Icons:** [Lucide React](https://lucide.dev/)
+- **Charts:** [Recharts](https://recharts.org/)
+- **Animations:** [Framer Motion](https://www.framer.com/motion/)
+- **Mock Backend:** [JSON Server](https://github.com/typicode/json-server)
