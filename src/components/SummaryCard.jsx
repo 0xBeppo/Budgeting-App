@@ -2,8 +2,18 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 
-const SummaryCard = ({ title, amount, type, icon: Icon }) => {
+const SummaryCard = ({ title, amount, type, icon: Icon, percentage }) => {
     const isPositive = type === 'asset' || type === 'net-worth';
+
+    // Determine if the change is "good"
+    // For Assets/Net Worth: Positive % is good (Green), Negative % is bad (Red)
+    // For Liabilities: Positive % is bad (Red), Negative % is good (Green)
+    const isGoodChange = isPositive ? percentage >= 0 : percentage <= 0;
+
+    // Color for the percentage text/icon
+    const trendColor = isGoodChange ? 'text-emerald-400' : 'text-red-400';
+    const trendBg = isGoodChange ? 'bg-emerald-500/10' : 'bg-red-500/10';
+    const TrendIcon = percentage >= 0 ? TrendingUp : TrendingDown;
 
     const formatCurrency = (value) => {
         return new Intl.NumberFormat('es-ES', {
@@ -33,10 +43,15 @@ const SummaryCard = ({ title, amount, type, icon: Icon }) => {
             </div>
 
             <div className="mt-6 z-10 flex items-center gap-2">
-                <div className={`p-1.5 rounded-full ${isPositive ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`}>
-                    {isPositive ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
-                </div>
-                <span className="text-xs text-gray-400 font-medium">
+                {percentage !== undefined && (
+                    <div className={`flex items-center gap-1 px-2 py-1 rounded-full ${trendBg} ${trendColor}`}>
+                        <TrendIcon size={14} />
+                        <span className="text-xs font-bold">
+                            {Math.abs(percentage).toFixed(1)}% YTD
+                        </span>
+                    </div>
+                )}
+                <span className="text-xs text-gray-400 font-medium ml-1">
                     {isPositive ? 'Balance positivo' : 'Deuda total'}
                 </span>
             </div>

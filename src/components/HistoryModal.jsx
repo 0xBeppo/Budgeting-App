@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Plus, Trash2, Save, Edit2 } from 'lucide-react';
+import { X, Plus, Trash2, Save, Edit2, TrendingUp, TrendingDown } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { updateCategory, getFinancialData } from '../services/api';
+import { calculateYTD } from '../utils/financeUtils';
 
 const HistoryModal = ({ isOpen, onClose, item, categoryId, type, onUpdate }) => {
     const [history, setHistory] = useState([]);
@@ -147,6 +148,17 @@ const HistoryModal = ({ isOpen, onClose, item, categoryId, type, onUpdate }) => 
     const maxAmount = history.length > 0 ? Math.max(...history.map(h => h.amount)) : 0;
     const minAmount = history.length > 0 ? Math.min(...history.map(h => h.amount)) : 0;
 
+    // Calculate YTD
+    const { percentage: ytdPercentage } = calculateYTD(item.amount, history);
+    const isPositiveYTD = ytdPercentage >= 0;
+
+    // Determine if the change is "good"
+    // For Assets: Positive % is good (Green)
+    // For Liabilities: Positive % is bad (Red)
+    const isGoodYTD = isAsset ? isPositiveYTD : !isPositiveYTD;
+    const ytdColor = isGoodYTD ? 'text-emerald-400' : 'text-red-400';
+    const YTDIcon = isPositiveYTD ? TrendingUp : TrendingDown;
+
     return (
         <AnimatePresence>
             {isOpen && (
@@ -262,7 +274,13 @@ const HistoryModal = ({ isOpen, onClose, item, categoryId, type, onUpdate }) => 
                                     <div className="grid grid-cols-3 gap-4">
                                         <div className="bg-white/5 rounded-xl p-4 border border-white/5">
                                             <p className="text-xs text-gray-500 mb-1">Valor Actual</p>
-                                            <p className="text-lg font-semibold text-white">{formatCurrency(item.amount)}</p>
+                                            <div className="flex flex-col">
+                                                <p className="text-lg font-semibold text-white">{formatCurrency(item.amount)}</p>
+                                                <div className={`flex items-center gap-1 text-xs font-medium ${ytdColor}`}>
+                                                    <YTDIcon size={12} />
+                                                    <span>{Math.abs(ytdPercentage).toFixed(1)}% YTD</span>
+                                                </div>
+                                            </div>
                                         </div>
                                         <div className="bg-white/5 rounded-xl p-4 border border-white/5">
                                             <p className="text-xs text-gray-500 mb-1">Máximo</p>
