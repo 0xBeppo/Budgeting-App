@@ -10,18 +10,18 @@ const Dashboard = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const result = await getFinancialData();
-                setData(result);
-            } catch (err) {
-                setError('Error al cargar los datos. Asegúrate de que el servidor esté funcionando (npm run server).');
-            } finally {
-                setLoading(false);
-            }
-        };
+    const fetchData = async () => {
+        try {
+            const result = await getFinancialData();
+            setData(result);
+        } catch (err) {
+            setError('Error al cargar los datos. Asegúrate de que el servidor esté funcionando (npm run server).');
+        } finally {
+            setLoading(false);
+        }
+    };
 
+    useEffect(() => {
         fetchData();
     }, []);
 
@@ -94,11 +94,13 @@ const Dashboard = () => {
                         title="Activos"
                         items={assets}
                         type="assets"
+                        onUpdate={fetchData}
                     />
                     <FinancialList
                         title="Pasivos"
                         items={liabilities}
                         type="liabilities"
+                        onUpdate={fetchData}
                     />
                 </div>
 

@@ -23,3 +23,24 @@ export const getFinancialData = async () => {
         throw error;
     }
 };
+
+export const updateCategory = async (type, category) => {
+    try {
+        const response = await fetch(`${API_URL}/${type}/${category.id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(category),
+        });
+
+        if (!response.ok) {
+            throw new Error('Error updating category');
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('API Error:', error);
+        throw error;
+    }
+};

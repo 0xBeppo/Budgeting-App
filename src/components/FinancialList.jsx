@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Wallet, Building, TrendingUp, CreditCard, Landmark } from 'lucide-react';
+import { Wallet, Building, TrendingUp, CreditCard, Landmark, Plus, Edit2, Trash2 } from 'lucide-react';
 import HistoryModal from './HistoryModal';
+import AssetModal from './AssetModal';
+import { updateCategory, getFinancialData } from '../services/api';
 
 const getIcon = (type) => {
     switch (type) {
@@ -14,15 +16,120 @@ const getIcon = (type) => {
     }
 };
 
-const FinancialList = ({ title, items, type }) => {
-    const [selectedItem, setSelectedItem] = useState(null);
+const FinancialList = ({ title, items, type, onUpdate }) => {
+    const [selectedContext, setSelectedContext] = useState({ item: null, categoryId: null });
+    const [assetModal, setAssetModal] = useState({ isOpen: false, type: null, categoryId: null, categoryName: null, item: null });
 
     const formatCurrency = (value) => {
         return new Intl.NumberFormat('es-ES', {
             style: 'currency',
             currency: 'EUR',
-            maximumFractionDigits: 0
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
         }).format(value);
+    };
+
+    const handleClose = () => {
+        setSelectedContext({ item: null, categoryId: null });
+    };
+
+    const handleAddClick = (e, category) => {
+        e.stopPropagation();
+        setAssetModal({
+            isOpen: true,
+            type: 'add',
+            categoryId: category.id,
+            categoryName: category.label,
+            item: null
+        });
+    };
+
+    const handleEditClick = (e, item, category) => {
+        e.stopPropagation();
+        setAssetModal({
+            isOpen: true,
+            type: 'edit',
+            categoryId: category.id,
+            categoryName: category.label,
+            item: item
+        });
+    };
+
+    const handleDeleteClick = async (e, item, categoryId) => {
+        e.stopPropagation();
+        if (window.confirm(`¿Estás seguro de que quieres eliminar "${item.name}"?`)) {
+            try {
+                const data = await getFinancialData();
+                const categoryList = type === 'assets' ? data.assets : data.liabilities;
+                const currentCategory = categoryList.find(c => c.id === categoryId);
+
+                if (currentCategory) {
+                    const updatedItems = currentCategory.items.filter(i => i.id !== item.id);
+                    const newAmount = updatedItems.reduce((sum, i) => sum + i.amount, 0);
+
+                    const updatedCategory = {
+                        ...currentCategory,
+                        amount: newAmount,
+                        items: updatedItems
+                    };
+
+                    await updateCategory(type, updatedCategory);
+                    if (onUpdate) onUpdate();
+                }
+            } catch (error) {
+                console.error('Error deleting item:', error);
+                alert('Error al eliminar el elemento');
+            }
+        }
+    };
+
+    const handleSaveAsset = async (formData) => {
+        try {
+            const data = await getFinancialData();
+            const categoryList = type === 'assets' ? data.assets : data.liabilities;
+            const currentCategory = categoryList.find(c => c.id === assetModal.categoryId);
+
+            if (!currentCategory) return;
+
+            let updatedItems;
+
+            if (assetModal.type === 'edit') {
+                // Update existing item
+                updatedItems = currentCategory.items.map(i =>
+                    i.id === assetModal.item.id
+                        ? { ...i, name: formData.name }
+                        : i
+                );
+            } else {
+                // Add new item
+                const newItem = {
+                    id: crypto.randomUUID(),
+                    name: formData.name,
+                    amount: formData.amount,
+                    lastUpdated: new Date().toISOString().split('T')[0],
+                    history: [
+                        { date: formData.date, amount: formData.amount }
+                    ]
+                };
+                updatedItems = [...currentCategory.items, newItem];
+            }
+
+            const newCategoryAmount = updatedItems.reduce((sum, i) => sum + i.amount, 0);
+
+            const updatedCategory = {
+                ...currentCategory,
+                amount: newCategoryAmount,
+                items: updatedItems
+            };
+
+            await updateCategory(type, updatedCategory);
+            if (onUpdate) onUpdate();
+            setAssetModal({ isOpen: false, type: null, categoryId: null, categoryName: null, item: null });
+
+        } catch (error) {
+            console.error('Error saving asset:', error);
+            alert('Error al guardar');
+        }
     };
 
     return (
@@ -44,36 +151,65 @@ const FinancialList = ({ title, items, type }) => {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: index * 0.1 }}
                                 key={category.id}
-                                className="glass-card p-5"
+                                className="bg-white/5 rounded-xl p-4 border border-white/5"
                             >
-                                <div className="flex items-center gap-4 mb-4">
-                                    <div className={`p-2.5 rounded-xl ${type === 'assets' ? 'bg-violet-500/10 text-violet-400' : 'bg-pink-500/10 text-pink-400'}`}>
-                                        <Icon size={22} />
+                                <div className="flex items-center justify-between mb-3">
+                                    <div className="flex items-center gap-3 text-gray-400">
+                                        <div className={`p-2 rounded-lg ${type === 'assets' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
+                                            <Icon size={20} />
+                                        </div>
+                                        <h4 className="font-medium text-white text-lg">{category.label || category.name}</h4>
                                     </div>
-                                    <div className="flex-1">
-                                        <h4 className="font-medium text-white text-lg">{category.label}</h4>
-                                        <p className="text-sm text-gray-400">{formatCurrency(category.amount)}</p>
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-white font-semibold">
+                                            {formatCurrency(category.amount)}
+                                        </span>
+                                        <button
+                                            onClick={(e) => handleAddClick(e, category)}
+                                            className="p-1 hover:bg-white/10 rounded-full text-gray-400 hover:text-white transition-colors"
+                                            title="Añadir elemento"
+                                        >
+                                            <Plus size={16} />
+                                        </button>
                                     </div>
                                 </div>
 
-                                <div className="space-y-6 pl-14 border-l border-white/5 ml-5">
+                                <div className="space-y-2">
                                     {category.items.map((item) => (
                                         <div
                                             key={item.id}
-                                            className="group cursor-pointer hover:bg-white/5 p-3 rounded-lg transition-colors duration-200 -mx-3"
-                                            onClick={() => setSelectedItem(item)}
+                                            onClick={() => setSelectedContext({ item, categoryId: category.id })}
+                                            className="flex items-center justify-between p-2 hover:bg-white/5 rounded-lg cursor-pointer group transition-colors"
                                         >
-                                            <div className="flex justify-between items-baseline mb-2">
-                                                <div>
-                                                    <span className="text-gray-300 group-hover:text-white transition-colors duration-200 block">{item.name}</span>
+                                            <span className="text-gray-300 text-sm">{item.name}</span>
+                                            <div className="flex items-center gap-3">
+                                                <div className="text-right">
+                                                    <p className="text-white font-medium text-sm">
+                                                        {formatCurrency(item.amount)}
+                                                    </p>
                                                     {item.lastUpdated && (
-                                                        <span className="text-xs text-gray-500">Actualizado: {item.lastUpdated}</span>
+                                                        <p className="text-[10px] text-gray-500">
+                                                            {new Date(item.lastUpdated).toLocaleDateString()}
+                                                        </p>
                                                     )}
                                                 </div>
-                                                <span className="font-medium text-white/80 group-hover:text-white transition-colors duration-200">{formatCurrency(item.amount)}</span>
+                                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <button
+                                                        onClick={(e) => handleEditClick(e, item, category)}
+                                                        className="p-1.5 text-blue-400 hover:bg-blue-400/10 rounded transition-colors"
+                                                        title="Editar nombre"
+                                                    >
+                                                        <Edit2 size={14} />
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => handleDeleteClick(e, item, category.id)}
+                                                        className="p-1.5 text-red-400 hover:bg-red-400/10 rounded transition-colors"
+                                                        title="Eliminar"
+                                                    >
+                                                        <Trash2 size={14} />
+                                                    </button>
+                                                </div>
                                             </div>
-
-
                                         </div>
                                     ))}
                                 </div>
@@ -84,13 +220,25 @@ const FinancialList = ({ title, items, type }) => {
             </div>
 
             <HistoryModal
-                isOpen={!!selectedItem}
-                onClose={() => setSelectedItem(null)}
-                item={selectedItem}
+                isOpen={!!selectedContext.item}
+                onClose={handleClose}
+                item={selectedContext.item}
+                categoryId={selectedContext.categoryId}
                 type={type}
+                onUpdate={onUpdate}
+            />
+
+            <AssetModal
+                isOpen={assetModal.isOpen}
+                onClose={() => setAssetModal({ ...assetModal, isOpen: false })}
+                onSave={handleSaveAsset}
+                initialData={assetModal.item}
+                type={type}
+                categoryName={assetModal.categoryName}
             />
         </>
     );
 };
+
 
 export default FinancialList;

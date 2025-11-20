@@ -9,7 +9,7 @@ const CustomTooltip = ({ active, payload }) => {
             <div className="bg-dark/90 border border-white/10 p-3 rounded-lg backdrop-blur-md shadow-xl">
                 <p className="text-white font-medium">{payload[0].name}</p>
                 <p className="text-accent-primary">
-                    {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(payload[0].value)}
+                    {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(payload[0].value)}
                 </p>
             </div>
         );
