@@ -3,6 +3,7 @@ import { getFinancialData } from '../services/api';
 import SummaryCard from './SummaryCard';
 import FinancialList from './FinancialList';
 import AssetChart from './AssetChart';
+import NetWorthModal from './NetWorthModal';
 import { Wallet, ArrowDownCircle, ArrowUpCircle, Loader2 } from 'lucide-react';
 import { calculateAggregatedYTD } from '../utils/financeUtils';
 
@@ -10,6 +11,7 @@ const Dashboard = () => {
     const [data, setData] = useState({ assets: [], liabilities: [] });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [showNetWorthModal, setShowNetWorthModal] = useState(false);
 
     const fetchData = async () => {
         try {
@@ -102,8 +104,10 @@ const Dashboard = () => {
                     type="net-worth"
                     icon={Wallet}
                     percentage={netWorthYTD}
+                    onClick={() => setShowNetWorthModal(true)}
                 />
             </div>
+
             <div className="mb-12 max-w-lg mx-auto">
                 {/**Add here the Chart */}
                 <AssetChart data={assets} />
@@ -149,6 +153,15 @@ const Dashboard = () => {
                 <div className="xl:col-span-1">
                 </div>
             </div>
+
+            {/* Net Worth Modal */}
+            <NetWorthModal
+                isOpen={showNetWorthModal}
+                onClose={() => setShowNetWorthModal(false)}
+                assets={assets}
+                liabilities={liabilities}
+                netWorthYTD={netWorthYTD}
+            />
         </div>
     );
 };

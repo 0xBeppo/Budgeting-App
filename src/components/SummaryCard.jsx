@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 
-const SummaryCard = ({ title, amount, type, icon: Icon, percentage }) => {
+const SummaryCard = ({ title, amount, type, icon: Icon, percentage, onClick }) => {
     const isPositive = type === 'asset' || type === 'net-worth';
 
     // Determine if the change is "good"
@@ -27,7 +27,8 @@ const SummaryCard = ({ title, amount, type, icon: Icon, percentage }) => {
     return (
         <motion.div
             whileHover={{ scale: 1.02 }}
-            className="glass-panel p-6 flex flex-col justify-between h-full relative overflow-hidden group"
+            onClick={onClick}
+            className={`glass-panel p-6 flex flex-col justify-between h-full relative overflow-hidden group ${onClick ? 'cursor-pointer' : ''}`}
         >
             <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity duration-500">
                 {Icon && <Icon size={120} />}
