@@ -78,3 +78,94 @@ export const updateMonthlyBudget = async (data) => {
         throw error;
     }
 };
+
+export const getStocks = async () => {
+    const response = await fetch(`${API_URL}/stocks`);
+    if (!response.ok) {
+        throw new Error(`Error fetching stocks: ${response.status} ${response.statusText}`);
+    }
+    return await response.json();
+};
+
+export const updateStock = async (stock) => {
+    try {
+        const response = await fetch(`${API_URL}/stocks/${stock.id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(stock),
+        });
+
+        if (!response.ok) {
+            throw new Error('Error updating stock');
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('API Error:', error);
+        throw error;
+    }
+};
+
+export const addStock = async (stock) => {
+    try {
+        const response = await fetch(`${API_URL}/stocks`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(stock),
+        });
+
+        if (!response.ok) {
+            throw new Error('Error adding stock');
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('API Error:', error);
+        throw error;
+    }
+};
+
+export const deleteStock = async (stockId) => {
+    try {
+        const response = await fetch(`${API_URL}/stocks/${stockId}`, {
+            method: 'DELETE',
+        });
+
+        if (!response.ok) {
+            throw new Error('Error deleting stock');
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('API Error:', error);
+        throw error;
+    }
+};
+
+export const fetchStockPrice = async (ticker) => {
+    const apiKey = import.meta.env.VITE_FINNHUB_API_KEY;
+
+    // If no key is set or it's the placeholder, return null
+    if (!apiKey || apiKey === 'YOUR_API_KEY_HERE') {
+        console.warn('Finnhub API key is not set. Please add VITE_FINNHUB_API_KEY to your .env file');
+        return null;
+    }
+
+    try {
+        const response = await fetch(`https://finnhub.io/api/v1/quote?symbol=${ticker}&token=${apiKey}`);
+
+        if (!response.ok) {
+            throw new Error('Error fetching stock price from Finnhub');
+        }
+
+        const data = await response.json();
+        return data.c;
+    } catch (error) {
+        console.error('Finnhub API Error:', error);
+        return null;
+    }
+};

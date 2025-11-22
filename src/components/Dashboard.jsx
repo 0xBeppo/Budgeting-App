@@ -14,17 +14,24 @@ const Dashboard = () => {
     const [showNetWorthModal, setShowNetWorthModal] = useState(false);
 
     const fetchData = async () => {
+        console.log("fetchData started");
+        setLoading(true);
         try {
+            console.log("Calling getFinancialData...");
             const result = await getFinancialData();
+            console.log("getFinancialData success", result);
             setData(result);
         } catch (err) {
-            setError('Error al cargar los datos. Asegúrate de que el servidor esté funcionando (npm run server).');
+            console.error("getFinancialData failed", err);
+            setError('Error al cargar los datos financieros.');
         } finally {
+            console.log("fetchData finished");
             setLoading(false);
         }
     };
 
     useEffect(() => {
+        console.log("Dashboard mounted, calling fetchData");
         fetchData();
     }, []);
 
@@ -112,6 +119,7 @@ const Dashboard = () => {
                 {/**Add here the Chart */}
                 <AssetChart data={assets} />
             </div>
+
 
             {/* Summary Cards Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
